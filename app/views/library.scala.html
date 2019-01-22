@@ -1,0 +1,38 @@
+@(currentPage: Page[Book])
+@import org.mongodb.scala.bson.ObjectId
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Библиотека</title>
+    </head>
+    <body>
+        <h1>Библиотека</h1>
+        <hr>
+        <div>
+        @Option(currentPage.items).filterNot(_.isEmpty).map { books =>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Год</th>
+                        <th>Авторы</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @books.map { book =>
+                        <tr>
+                            <td><a href="@routes.HomeController.edit(book._id.toString)">@book.title</a></td>
+                            <td>@book.year</td>
+                            <td>@book.authors.mkString(", ")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        </div>
+        <hr>
+        <a href="@routes.HomeController.create()">Добавить новую книгу</a>
+    </body>
+</html>
