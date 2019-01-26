@@ -3,25 +3,24 @@ package controllers
 import javax.inject._
 import play.api._
 import play.api.mvc._
-import models.{Book, Page, _}
+import models._
 import db._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.mvc.{AbstractController, ControllerComponents}
-import collection._
 import play.api.data.Form
-import play.api.data.Forms._
+import play.api.data.Forms.{mapping, ignored, nonEmptyText, number}
+import play.api.data.Forms
 import play.api.i18n.I18nSupport
 
 import org.mongodb.scala.bson.ObjectId
-import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model._
 
 @Singleton
 class HomeController @Inject()(
   cc: ControllerComponents,
-  ldb: LibraryDB,
+  bdb: BookDB,
+  adb: AuthorDB
 ) extends AbstractController(cc)
   with I18nSupport{
 
@@ -31,7 +30,7 @@ class HomeController @Inject()(
 
   def list = Action.async {
     implicit request =>
-      val bookList = ldb.booksCollection.find().toFuture()
+      val bookList = bdb.booksCollection.find().toFuture()
       bookList.map(books => Ok(views.html.library(Page(books))))
   }
 
@@ -40,7 +39,7 @@ class HomeController @Inject()(
       "id" -> ignored(new ObjectId(): ObjectId),
       "title" -> nonEmptyText,
       "year" -> number,
-      "authors" -> play.api.data.Forms.list(nonEmptyText))(Book.apply)(Book.unapply)
+      "authors" -> Forms.list(nonEmptyText))(Book.apply)(Book.unapply)
   )
 
   def create = Action { implicit request: Request[AnyContent]=>
@@ -53,22 +52,22 @@ class HomeController @Inject()(
         formWithErrors => Future.successful(BadRequest(views.html.create(formWithErrors))),
         book => {
           val authorList = book.authors.head.split(",").map(_.trim).toList
-          val futureInsertBook = ldb.booksCollection.insertOne(book.copy(_id = new ObjectId(), authors = authorList)).toFuture()
 
-          for (author <- authorList) {
-            val upsertResult = ldb.authorsCollection.updateOne(equal("name", author), Updates.combine(Updates.setOnInsert("name", author), Updates.addToSet("books", book.title)), new UpdateOptions().upsert(true)).head()
-            upsertResult.map(result => println(result))
+          bdb.insert(book.copy(_id = new ObjectId(), authors = authorList))
+
+          authorList.map {author =>
+            adb.upsert(author, book)
           }
 
-          futureInsertBook.map {result => home}
+          Future.successful(home)
         })
   }
 
   def edit(id: String) = Action.async {
     implicit request =>
-      val futureBook = ldb.booksCollection.find(equal("_id",new ObjectId(id))).toFuture()
+      val futureBook = bdb.find(id)
       futureBook.map {
-        books: Seq[Book] => Ok(views.html.edit(id, bookForm.fill(Book(books.head._id, books.head.title, books.head.year, List(books.head.authors.mkString(", "))))))
+        book => Ok(views.html.edit(id, bookForm.fill(Book(book._id, book.title, book.year, List(book.authors.mkString(", "))))))
       }
   }
 
@@ -78,36 +77,31 @@ class HomeController @Inject()(
         formWithErrors => Future.successful(BadRequest(views.html.edit(id, formWithErrors))),
         book => {
           val authorList = book.authors.head.split(",").map(_.trim).toList
-          val oldBook = ldb.booksCollection.find(equal("_id", new ObjectId(id))).head()
-          val futureUpdateBook = ldb.booksCollection.updateOne(equal("_id", new ObjectId(id)), Updates.combine(Updates.set("title", book.title), Updates.set("year", book.year), Updates.set("authors", authorList))).toFuture()
+
+          val oldBook = bdb.find(id)
+
+          bdb.update(id, book, authorList)
 
           oldBook.map(oldBook => {
-            val deleteBookResult = ldb.authorsCollection.updateMany(equal("books", oldBook.title), Updates.pull("books", oldBook.title)).head()
-            deleteBookResult.map(result => println(result))
-            val deleteAuthorResult = ldb.authorsCollection.deleteMany(size("books", 0)).head()
-            deleteAuthorResult.map(result => println(result))
+            adb.delete(oldBook)
           })
 
-          for (author <- authorList) {
-            val upsertResult = ldb.authorsCollection.updateOne(equal("name", author), Updates.combine(Updates.setOnInsert("name", author), Updates.addToSet("books", book.title)), new UpdateOptions().upsert(true)).head()
-            upsertResult.map(result => println(result))
+          authorList.map {author =>
+            adb.upsert(author, book)
           }
 
-          futureUpdateBook.map { result => home }
+          Future.successful(home)
         })
   }
 
   def delete(id: String) = Action.async {
-    val book = ldb.booksCollection.find(equal("_id", new ObjectId(id))).head()
-    val futureBook = ldb.booksCollection.deleteOne(equal("_id", new ObjectId(id))).toFuture()
+    val futureBook = bdb.find(id)
+    bdb.delete(id)
 
-    book.map(book => {
-      val deleteBookResult = ldb.authorsCollection.updateMany(equal("books", book.title), Updates.pull("books", book.title)).head()
-      deleteBookResult.map(result => println(result))
-      val deleteAuthorResult = ldb.authorsCollection.deleteMany(size("books", 0)).head()
-      deleteAuthorResult.map(result => println(result))
+    futureBook.map(book => {
+      adb.delete(book)
     })
 
-    futureBook.map(i => home)
+    Future.successful(home)
   }
 }
