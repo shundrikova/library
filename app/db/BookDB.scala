@@ -1,7 +1,8 @@
 package db
 
 import models._
-import org.mongodb.scala.{Completed, MongoClient, MongoCollection, MongoDatabase, Observer}
+import models.Helpers._
+import org.mongodb.scala.{MongoClient, MongoCollection, MongoDatabase}
 import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.codecs.Macros._
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
@@ -21,7 +22,7 @@ class BookDB {
   val booksCollection: MongoCollection[Book] = database.getCollection("books")
 
   def insert(book: Book) ={
-    booksCollection.insertOne(book).toFuture()
+    booksCollection.insertOne(book).headResult()
   }
 
   def update(id: String, book:Book, authorList: List[String]) = {
@@ -32,15 +33,15 @@ class BookDB {
         Updates.set("year", book.year),
         Updates.set("authors", authorList)
       )
-    ).toFuture()
+    ).headResult()
   }
 
   def delete(id:String) = {
-    booksCollection.deleteOne(equal("_id", new ObjectId(id))).toFuture()
+    booksCollection.deleteOne(equal("_id", new ObjectId(id))).headResult()
   }
 
   def find(id: String) = {
-    booksCollection.find(equal("_id",new ObjectId(id))).head()
+    booksCollection.find(equal("_id",new ObjectId(id))).headResult()
   }
 
 }

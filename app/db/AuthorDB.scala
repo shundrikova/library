@@ -1,6 +1,7 @@
 package db
 
 import models._
+import models.Helpers._
 import org.mongodb.scala.{MongoClient, MongoCollection, MongoDatabase}
 import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.codecs.Macros._
@@ -26,14 +27,14 @@ class AuthorDB {
         Updates.addToSet("books", book.title)
       ),
       new UpdateOptions().upsert(true)
-    ).toFuture()
+    ).headResult()
   }
 
   def delete(book: Book) = {
-    authorsCollection.updateMany(equal("books", book.title), Updates.pull("books", book.title)).toFuture()
+    authorsCollection.updateMany(equal("books", book.title), Updates.pull("books", book.title)).headResult()
   }
 
   def deleteEmpty ={
-    authorsCollection.deleteMany(size("books", 0)).toFuture()
+    authorsCollection.deleteMany(size("books", 0)).headResult()
   }
 }
