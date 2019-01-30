@@ -7,14 +7,15 @@ import models._
 import db._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import play.api.mvc.{AbstractController, ControllerComponents}
 import play.api.data.Form
-import play.api.data.Forms.{mapping, ignored, nonEmptyText, number}
+import play.api.data.Forms.{ignored, mapping, nonEmptyText, number}
 import play.api.data.Forms
 import play.api.i18n.I18nSupport
-
 import org.mongodb.scala.bson.ObjectId
+
+import scala.concurrent.duration.{Duration, SECONDS}
 
 @Singleton
 class HomeController @Inject()(
@@ -84,6 +85,7 @@ class HomeController @Inject()(
 
           oldBook.map(oldBook => {
             adb.delete(oldBook)
+            adb.deleteEmpty
           })
 
           authorList.map {author =>
@@ -100,6 +102,7 @@ class HomeController @Inject()(
 
     futureBook.map(book => {
       adb.delete(book)
+      adb.deleteEmpty
     })
 
     Future.successful(home)

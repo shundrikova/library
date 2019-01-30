@@ -1,14 +1,14 @@
 package db
 
 import models._
-import org.mongodb.scala.{MongoClient, MongoCollection, MongoDatabase}
+import org.mongodb.scala.{Completed, MongoClient, MongoCollection, MongoDatabase, Observer}
 import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.codecs.Macros._
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.Updates
-import scala.concurrent.ExecutionContext.Implicits.global
+
 
 class BookDB {
   val codecRegistry = fromRegistries(fromProviders(classOf[Book]), DEFAULT_CODEC_REGISTRY)
@@ -21,34 +21,22 @@ class BookDB {
   val booksCollection: MongoCollection[Book] = database.getCollection("books")
 
   def insert(book: Book) ={
-    val result = booksCollection.insertOne(book).head()
-    result.map(result => {
-      println(result)
-      println("добавление книги")
-    })
+    booksCollection.insertOne(book).toFuture()
   }
 
   def update(id: String, book:Book, authorList: List[String]) = {
-    val result = booksCollection.updateOne(
+    booksCollection.updateOne(
       equal("_id", new ObjectId(id)),
       Updates.combine(
         Updates.set("title", book.title),
         Updates.set("year", book.year),
         Updates.set("authors", authorList)
       )
-    ).head()
-    result.map(result => {
-      println(result)
-      println("апдейт книги")
-    })
+    ).toFuture()
   }
 
   def delete(id:String) = {
-    val result = booksCollection.deleteOne(equal("_id", new ObjectId(id))).head()
-    result.map(result => {
-      println(result)
-      println("удаление книги")
-    })
+    booksCollection.deleteOne(equal("_id", new ObjectId(id))).toFuture()
   }
 
   def find(id: String) = {
