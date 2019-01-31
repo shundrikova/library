@@ -1,15 +1,12 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
-# https://www.playframework.com/documentation/latest/ScalaRouting
-# ~~~~
 
-# An example controller showing a sample home page
 GET     /                           controllers.HomeController.index
 
 # List
 GET     /library                    controllers.HomeController.list
 
-# Add
+# Сreate
 GET     /library/new                controllers.HomeController.create
 POST    /library/save               controllers.HomeController.save
 

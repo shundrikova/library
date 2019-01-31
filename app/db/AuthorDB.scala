@@ -1,7 +1,7 @@
 package db
 
 import models._
-import models.Helpers._
+import Helpers._
 import org.mongodb.scala.{MongoClient, MongoCollection, MongoDatabase}
 import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.codecs.Macros._

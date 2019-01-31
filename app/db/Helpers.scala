@@ -1,11 +1,11 @@
-package models
+package db
 
 import java.util.concurrent.TimeUnit
 
+import org.mongodb.scala.{Document, Observable}
+
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-
-import org.mongodb.scala._
 
 object Helpers {
 

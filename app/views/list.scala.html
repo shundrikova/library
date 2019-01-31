@@ -1,4 +1,4 @@
-@(currentPage: Page[Book])
+@(list: Seq[Book])
 @import org.mongodb.scala.bson.ObjectId
 
 <!DOCTYPE html>
@@ -11,7 +11,7 @@
         <h1>Библиотека</h1>
         <hr>
         <div>
-        @Option(currentPage.items).filterNot(_.isEmpty).map { books =>
+        @Option(list).filterNot(_.isEmpty).map { books =>
             <table>
                 <thead>
                     <tr>

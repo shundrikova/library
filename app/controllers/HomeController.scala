@@ -3,10 +3,11 @@ package controllers
 import javax.inject._
 import play.api._
 import play.api.mvc._
+
 import models._
 import db._
+import Helpers._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import play.api.mvc.{AbstractController, ControllerComponents}
 import play.api.data.Form
@@ -27,9 +28,9 @@ class HomeController @Inject()(
 
   def home = Redirect(routes.HomeController.list())
 
-  def list = Action.async { implicit request =>
-    val bookList = bdb.booksCollection.find().toFuture()
-    bookList.map(books => Ok(views.html.library(Page(books))))
+  def list = Action { implicit request =>
+    val bookList = bdb.booksCollection.find().results()
+    Ok(views.html.list(bookList))
   }
 
   val bookForm = Form(
