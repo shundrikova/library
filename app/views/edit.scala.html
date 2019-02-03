@@ -1,5 +1,4 @@
 @(id: String, bookForm: Form[Book])(implicit request: RequestHeader, messagesProvider: MessagesProvider)
-@import helper._
 
 <!DOCTYPE html>
 <html lang="ru">
@@ -10,21 +9,22 @@
     <body>
 
         <div>
-        @helper.form(helper.CSRF(routes.HomeController.update(id))) {
-            <fieldset>
-                @helper.inputText(bookForm("title"), '_label -> "Название")
-                @helper.inputText(bookForm("year"), '_label -> "Год")
-                @helper.repeat(bookForm("authors"), min = 1) { authorsField =>
-                    @helper.inputText(authorsField, '_label -> "Авторы (вводятся через запятую)")
-                }
-            </fieldset>
-            <div>
-                <input type="submit" value="Обновить" />
-                <a href="@routes.HomeController.list()">Вернуться назад</a>
+            @helper.form(helper.CSRF(routes.HomeController.update(id))) {
+                <fieldset>
+                    @helper.inputText(bookForm("title"), '_label -> "Название")
+                    @helper.inputText(bookForm("year"), '_label -> "Год")
+                    @helper.repeat(bookForm("authors"), min = 1) { authorsField =>
+                        @helper.inputText(authorsField, '_label -> "Авторы (вводятся через запятую)")
+                    }
+                </fieldset>
+                <div>
+                    <input type="submit" value="Обновить" />
+                    <a href="@routes.HomeController.list()">Вернуться назад</a>
 
-            </div>
-        }
+                </div>
+            }
         </div>
-        <div>@helper.form(helper.CSRF(routes.HomeController.delete(id))) {  <input type="submit" value="Удалить">  }</div>
+        <div>@helper.form(helper.CSRF(routes.HomeController.delete(id))) {
+            <input type="submit" value="Удалить">  }</div>
     </body>
 </html>

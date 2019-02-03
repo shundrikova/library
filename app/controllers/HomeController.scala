@@ -1,20 +1,16 @@
 package controllers
 
-import javax.inject._
-import play.api._
-import play.api.mvc._
-
-import models._
+import db.Helpers._
 import db._
-import Helpers._
+import javax.inject._
+import models._
+import org.mongodb.scala.bson.ObjectId
+import play.api.data.Forms.{ignored, mapping, nonEmptyText, number}
+import play.api.data.{Form, Forms}
+import play.api.i18n.I18nSupport
+import play.api.mvc.{AbstractController, ControllerComponents}
 
 import scala.concurrent.Future
-import play.api.mvc.{AbstractController, ControllerComponents}
-import play.api.data.Form
-import play.api.data.Forms.{ignored, mapping, nonEmptyText, number}
-import play.api.data.Forms
-import play.api.i18n.I18nSupport
-import org.mongodb.scala.bson.ObjectId
 
 @Singleton
 class HomeController @Inject()(
@@ -22,9 +18,11 @@ class HomeController @Inject()(
   bdb: BookDB,
   adb: AuthorDB
 ) extends AbstractController(cc)
-  with I18nSupport{
+  with I18nSupport {
 
-  def index() = Action { home }
+  def index() = Action {
+    home
+  }
 
   def home = Redirect(routes.HomeController.list())
 
@@ -52,7 +50,7 @@ class HomeController @Inject()(
         val authorList = book.authors.head.split(",").map(_.trim).toList
         bdb.insert(book.copy(_id = new ObjectId(), authors = authorList))
 
-        authorList.map {author =>
+        authorList.map { author =>
           adb.upsert(author, book)
         }
 
@@ -78,15 +76,15 @@ class HomeController @Inject()(
         adb.delete(oldBook)
         adb.deleteEmpty
 
-        authorList.map {author =>
+        authorList.map { author =>
           adb.upsert(author, book)
         }
 
-          Future.successful(home)
-        })
+        Future.successful(home)
+      })
   }
 
-  def delete(id: String) = Action.async {
+  def delete(id: String) = Action.async { implicit request =>
     val book = bdb.find(id)
     bdb.delete(id)
 

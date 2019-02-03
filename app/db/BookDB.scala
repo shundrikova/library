@@ -1,30 +1,20 @@
 package db
 
+import db.Helpers._
 import models._
-import Helpers._
-import org.mongodb.scala.{MongoClient, MongoCollection, MongoDatabase}
-import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
-import org.mongodb.scala.bson.codecs.Macros._
-import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
+import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.Updates
 
-class BookDB {
-  val codecRegistry = fromRegistries(fromProviders(classOf[Book]), DEFAULT_CODEC_REGISTRY)
-
-  //val mongoClient: MongoClient = MongoClient("mongodb://localhost:27017")
-  val mongoClient: MongoClient = MongoClient("mongodb://user:password1234@ds163694.mlab.com:63694/library")
-
-  val database: MongoDatabase = mongoClient.getDatabase("library").withCodecRegistry(codecRegistry)
-
+class BookDB extends CommonDB {
   val booksCollection: MongoCollection[Book] = database.getCollection("books")
 
-  def insert(book: Book) ={
+  def insert(book: Book) = {
     booksCollection.insertOne(book).headResult()
   }
 
-  def update(id: String, book:Book, authorList: List[String]) = {
+  def update(id: String, book: Book, authorList: List[String]) = {
     booksCollection.updateOne(
       equal("_id", new ObjectId(id)),
       Updates.combine(
@@ -35,12 +25,12 @@ class BookDB {
     ).headResult()
   }
 
-  def delete(id:String) = {
+  def delete(id: String) = {
     booksCollection.deleteOne(equal("_id", new ObjectId(id))).headResult()
   }
 
   def find(id: String) = {
-    booksCollection.find(equal("_id",new ObjectId(id))).headResult()
+    booksCollection.find(equal("_id", new ObjectId(id))).headResult()
   }
 
 }

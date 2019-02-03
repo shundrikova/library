@@ -1,7 +1,5 @@
 @(bookForm: Form[Book])(implicit request: RequestHeader, messagesProvider: MessagesProvider)
 
-@import helper._
-
 <!DOCTYPE html>
 <html lang="ru">
     <head>
@@ -11,19 +9,19 @@
     <body>
 
         <div class="authors">
-        @helper.form(helper.CSRF(routes.HomeController.save())) {
-            <fieldset>
-                @helper.inputText(bookForm("title"), '_label -> "Название")
-                @helper.inputText(bookForm("year"), '_label -> "Год")
-                @helper.repeat(bookForm("authors"), min = 1) { authorsField =>
-                    @helper.inputText(authorsField, '_label -> "Авторы (вводятся через запятую)")
-                }
-            </fieldset>
-            <div>
-                <input type="submit" value="Добавить" />
-                <a href="@routes.HomeController.list()">Вернуться назад</a>
-            </div>
-        }
+            @helper.form(helper.CSRF(routes.HomeController.save())) {
+                <fieldset>
+                    @helper.inputText(bookForm("title"), '_label -> "Название")
+                    @helper.inputText(bookForm("year"), '_label -> "Год")
+                    @helper.repeat(bookForm("authors"), min = 1) { authorsField =>
+                        @helper.inputText(authorsField, '_label -> "Авторы (вводятся через запятую)")
+                    }
+                </fieldset>
+                <div>
+                    <input type="submit" value="Добавить" />
+                    <a href="@routes.HomeController.list()">Вернуться назад</a>
+                </div>
+            }
         </div>
     </body>
 </html>
