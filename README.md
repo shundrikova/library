@@ -13,9 +13,9 @@ sbt run
 Для реализации был использован MongoDB Scala Driver.
 
 **Пример коллекции книг:**
-![Таблица книг](https://github.com/timbread/library/tree/master/public/db-example/books.png)
+![Таблица книг](https://github.com/timbread/library/blob/master/public/db-example/books.png)
 
 **Пример коллекции авторов:**
-![Таблица авторов](https://github.com/timbread/library/tree/master/public/db-example/authors.png)
+![Таблица авторов](https://github.com/timbread/library/blob/master/public/db-example/authors.png)
 
 
